@@ -19,13 +19,17 @@ Utilities for encoding and decoding frames.
 """
 categories = ["asynchronous"]
 
+[features]
+log = ["tracing/log"]
+
 [dependencies]
 tokio-io = { version = "=0.2.0-alpha.2", path = "../tokio-io" }
 
 bytes = "0.4.7"
 futures-core-preview = "=0.3.0-alpha.18"
 futures-sink-preview = "=0.3.0-alpha.18"
-log = "0.4"
+
+tracing = { version = "0.1.6", optional = true }
 
 [dev-dependencies]
 tokio = { version = "0.2.0-alpha.1", path = "../tokio" }

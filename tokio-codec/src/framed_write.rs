@@ -9,7 +9,6 @@ use tokio_io::{AsyncBufRead, AsyncRead, AsyncWrite};
 use bytes::BytesMut;
 use futures_core::{ready, Stream};
 use futures_sink::Sink;
-use log::trace;
 use std::fmt;
 use std::io::{self, BufRead, Read};
 use std::pin::Pin;
@@ -199,11 +198,14 @@ where
     }
 
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        let span = trace_span!("FramedRead::poll_flush");
+        let _e = span.enter();
         trace!("flushing framed transport");
+
         let pinned = Pin::get_mut(self);
 
         while !pinned.buffer.is_empty() {
-            trace!("writing; remaining={}", pinned.buffer.len());
+            trace!(message = "writing", remaining = pinned.buffer.len());
 
             let buf = &pinned.buffer;
             let n = ready!(pin!(pinned.inner).poll_write(cx, &buf))?;

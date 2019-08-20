@@ -6,7 +6,6 @@ use tokio_io::AsyncRead;
 use bytes::BytesMut;
 use futures_core::Stream;
 use futures_sink::Sink;
-use log::trace;
 use std::fmt;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -190,6 +189,13 @@ where
             // the upstream has returned EOF, and the decoder is no longer
             // readable, it can be assumed that the decoder will never become
             // readable again, at which point the stream is terminated.
+            let span = trace_span!(
+                "FramedRead::poll_next",
+                is_readable = pinned.is_readable,
+                eof = pinned.eof
+            );
+            let _e = span.enter();
+
             if pinned.is_readable {
                 if pinned.eof {
                     let frame = pinned.inner.decode_eof(&mut pinned.buffer)?;
