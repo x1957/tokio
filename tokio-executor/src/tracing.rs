@@ -70,6 +70,20 @@ macro_rules! trace_span {
     };
 }
 
+#[cfg(feature = "tracing")]
+macro_rules! debug_span {
+    ($($arg:tt)+) => {
+        tracing::debug_span!($($arg)+)
+    };
+}
+
+#[cfg(not(feature = "tracing"))]
+macro_rules! debug_span {
+    ($($arg:tt)+) => {
+        crate::tracing::Span::new()
+    };
+}
+
 #[cfg(not(feature = "tracing"))]
 impl Span {
     pub(crate) fn new() -> Self {

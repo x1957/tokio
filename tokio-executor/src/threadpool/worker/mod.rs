@@ -227,6 +227,9 @@ impl Worker {
         let mut spin_cnt = 0;
         let mut tick = 0;
 
+        let span = debug_span!("worker", tokio.worker.id = self.id.0);
+        let _e = span.enter();
+
         while self.check_run_state(first) {
             first = false;
 
