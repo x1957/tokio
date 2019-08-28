@@ -231,6 +231,7 @@ impl Worker {
         let _e = span.enter();
 
         while self.check_run_state(first) {
+            trace!(tokio.worker.tick = tick, tokio.worker.spin_count = spin_cnt);
             first = false;
 
             // Run the next available task
@@ -413,7 +414,6 @@ impl Worker {
 
                         trace!(
                             message = "try_steal_task -- signal_work;",
-                            self = self.id.0,
                             from = idx,
                         );
 
@@ -574,7 +574,7 @@ impl Worker {
         // Putting a worker to sleep is a multipart operation. This is, in part,
         // due to the fact that a worker can be notified without it being popped
         // from the sleep stack. Extra care is needed to deal with this.
-        let span = trace_span!("Worker::sleep", idx = self.id.0, id = ?self.id);
+        let span = trace_span!("Worker::sleep");
         let _e = span.enter();
 
         let mut state: State = self.entry().state.load(Acquire).into();
@@ -723,7 +723,7 @@ impl Worker {
 
 impl Drop for Worker {
     fn drop(&mut self) {
-        trace!(message = "shutting down thread", idx = self.id.0);
+        trace!("shutting down thread");
 
         if self.should_finalize.get() {
             // Drain the work queue
