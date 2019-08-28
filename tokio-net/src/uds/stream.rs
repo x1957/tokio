@@ -224,7 +224,11 @@ impl UnixStream {
                 self.io.clear_read_ready(cx, mio::Ready::readable())?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(uds.read.bytes = n);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -282,6 +286,7 @@ impl UnixStream {
                 unsafe {
                     buf.advance_mut(n);
                 }
+                debug!(uds.read.bytes = n);
                 Poll::Ready(Ok(n))
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -304,7 +309,11 @@ impl UnixStream {
                 self.io.clear_write_ready(cx)?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(uds.write.bytes = n);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -328,6 +337,7 @@ impl UnixStream {
         match r {
             Ok(n) => {
                 buf.advance(n);
+                debug!(uds.write.bytes = n);
                 Poll::Ready(Ok(n))
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {

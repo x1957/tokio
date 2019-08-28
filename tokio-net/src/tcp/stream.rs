@@ -603,7 +603,11 @@ impl TcpStream {
                 self.io.clear_read_ready(cx, mio::Ready::readable())?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(tcp.read.bytes = n);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -661,7 +665,7 @@ impl TcpStream {
                 unsafe {
                     buf.advance_mut(n);
                 }
-                trace!(tcp.written.bytes = n);
+                debug!(tcp.read.bytes = n);
                 Poll::Ready(Ok(n))
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
@@ -684,7 +688,11 @@ impl TcpStream {
                 self.io.clear_write_ready(cx)?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(tcp.write.bytes = n);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -708,6 +716,7 @@ impl TcpStream {
         match r {
             Ok(n) => {
                 buf.advance(n);
+                debug!(tcp.write.bytes = n);
                 Poll::Ready(Ok(n))
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {

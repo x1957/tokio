@@ -100,7 +100,11 @@ impl UdpSocket {
                 self.io.clear_write_ready(cx)?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(udp.send.bytes = n);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -131,8 +135,12 @@ impl UdpSocket {
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 self.io.clear_read_ready(cx, mio::Ready::readable())?;
                 Poll::Pending
+            },
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(udp.recv.bytes = n);
+                Poll::Ready(Ok(n))
             }
-            x => Poll::Ready(x),
         }
     }
 
@@ -158,7 +166,11 @@ impl UdpSocket {
                 self.io.clear_write_ready(cx)?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok(n) => {
+                debug!(udp.send.bytes = n, udp.send.to_addr = %target);
+                Poll::Ready(Ok(n))
+            }
         }
     }
 
@@ -184,7 +196,11 @@ impl UdpSocket {
                 self.io.clear_read_ready(cx, mio::Ready::readable())?;
                 Poll::Pending
             }
-            x => Poll::Ready(x),
+            Err(e) => Poll::Ready(Err(e)),
+            Ok((n, addr)) => {
+                debug!(udp.recv.bytes = n, udp.recv.from_addr = %addr);
+                Poll::Ready(Ok((n, addr)))
+            }
         }
     }
 
